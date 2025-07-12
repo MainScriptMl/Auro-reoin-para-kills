@@ -1,0 +1,41 @@
+-- Server Hop a servidores casi llenos (90% de capacidad) y con entre 17 y 19 jugadores cada 50 segundos
+
+local HttpService = game:GetService("HttpService")
+local TeleportService = game:GetService("TeleportService")
+local PlaceId = game.PlaceId
+
+function ServerHop()
+    local servers = {}
+    local req = syn and syn.request or http_request or request
+
+    if not req then
+        warn("Tu ejecutor no soporta http requests.")
+        return
+    end
+
+    local response = req({
+        Url = "https://games.roblox.com/v1/games/"..PlaceId.."/servers/Public?sortOrder=Desc&limit=100"
+    })
+
+    if response and response.Body then
+        local data = HttpService:JSONDecode(response.Body)
+        for _, server in ipairs(data.data) do
+            local occupancy = server.playing / server.maxPlayers
+            if occupancy >= 0.9 and server.playing >= 17 and server.playing <= 18 and server.id ~= game.JobId then
+                table.insert(servers, server.id)
+            end
+        end
+    end
+
+    if #servers > 0 then
+        local randomServer = servers[math.random(1, #servers)]
+        TeleportService:TeleportToPlaceInstance(PlaceId, randomServer)
+    else
+        warn("No se encontraron servidores casi llenos disponibles con entre 17 y 19 jugadores.")
+    end
+end
+
+while true do
+    wait(40)
+    pcall(ServerHop)
+end
