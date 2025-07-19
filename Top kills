@@ -36,6 +36,6 @@ function ServerHop()
 end
 
 while true do
-    wait(40)
+    wait(60)
     pcall(ServerHop)
 end
